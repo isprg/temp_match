@@ -11,9 +11,9 @@ THRESH_MACH = 0.9
 def inputTemplates(dirName):
     """テンプレート画像を全て読み込む関数 
 
-    Args:
+    Parameters:
         dirName(str): テンプレート画像が入ったﾃﾞｨﾚｸﾄﾘ名
-    Return:
+    Returns:
         images(list): 全てのテンプレート画像のnumpy形式データが入ったリスト
     """
     images = []
@@ -25,10 +25,10 @@ def inputTemplates(dirName):
 def templateMatch(img, temp):
     """テンプレートマッチングを行い類似度と場所を返す
 
-    Args:
+    Parameters:
         img: テンプレートを探すグレースケール画像
         temp: テンプレートのグレースケール画像
-    Return:
+    Returns:
         val: 最大の類似度の値
         loc: 類似度が最大の左上の座標
     """
