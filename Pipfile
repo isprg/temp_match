@@ -13,5 +13,5 @@ matplotlib = "*"
 [requires]
 python_version = "3.9"
 
-[script]
+[scripts]
 main = "py main.py"
