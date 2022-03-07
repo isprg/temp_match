@@ -4,6 +4,8 @@ import time
 import cv2
 import numpy as np
 
+import poc
+
 CAMERA_ID = 0
 DELAY = 5
 THRESH_MACH = 0.9
@@ -11,9 +13,9 @@ THRESH_MACH = 0.9
 def inputTemplates(dirName):
     """テンプレート画像を全て読み込む関数 
 
-    Args:
+    Parameters:
         dirName(str): テンプレート画像が入ったﾃﾞｨﾚｸﾄﾘ名
-    Return:
+    Returns:
         images(list): 全てのテンプレート画像のnumpy形式データが入ったリスト
     """
     images = []
@@ -21,21 +23,6 @@ def inputTemplates(dirName):
         image = cv2.imread(os.path.join(dirName, fileName))
         images.append(image)
     return images
-
-def templateMatch(img, temp):
-    """テンプレートマッチングを行い類似度と場所を返す
-
-    Args:
-        img: テンプレートを探すグレースケール画像
-        temp: テンプレートのグレースケール画像
-    Return:
-        val: 最大の類似度の値
-        loc: 類似度が最大の左上の座標
-    """
-    res = cv2.matchTemplate(img, temp, cv2.TM_CCOEFF_NORMED)
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-    return max_val, max_loc
-
 
 def main():
     temps_rgb = inputTemplates('temp_images')
@@ -60,15 +47,15 @@ def main():
             w_mach = 0
             h_mach = 0
             for temp in temps_gray:
-                val, loc = templateMatch(frame_gray, temp)
+                val, loc_x, loc_y = poc.poc(temp, frame_gray)
                 if val > val_mach:
                     val_mach = val
-                    loc_mach = loc
+                    loc_mach = (loc_x, loc_y)
                     w_mach, h_mach = temp.shape[::-1]
 
             threshold = THRESH_MACH
             if val_mach >= threshold:
-                top_left = (loc_mach[0], loc_mach[1])
+                top_left = loc_mach
                 bottom_right = (top_left[0] + w_mach, top_left[1] + h_mach)
                 cv2.rectangle(frame_rgb, top_left, bottom_right, color=(0,0,255), thickness=3)
                 print(f'{top_left}, {bottom_right}')

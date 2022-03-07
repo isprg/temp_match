@@ -17,7 +17,7 @@ def pocfunc_model(alpha, delta1, delta2, r, u):
 
 
 def pocfunc(f, g, windowfunc = numpy.hanning, withlpf = True):
-    m = numpy.floor(map(lambda x: x / 2.0, f.shape))
+    m = numpy.floor(list(map(lambda x: x / 2.0, f.shape)))
     u = map(lambda x: x / 2.0, m)
 
     # hanning window
@@ -35,7 +35,7 @@ def pocfunc(f, g, windowfunc = numpy.hanning, withlpf = True):
 
     if withlpf == True:
         R = scipy.fftpack.fftshift(R)
-        lpf = numpy.ones(map(lambda x: x + 1.0, m))
+        lpf = numpy.ones(list(map(lambda x: x + 1.0, m)))
         lpf = zero_padding(lpf, f.shape, u)
         R = R * lpf
         R = scipy.fftpack.fftshift(R)
@@ -46,7 +46,7 @@ def pocfunc(f, g, windowfunc = numpy.hanning, withlpf = True):
 def poc(f, g, fitting_shape = (9, 9)): 
     # compute phase-only correlation
     center = map(lambda x: x / 2.0, f.shape)
-    m = numpy.floor(map(lambda x: x / 2.0, f.shape))
+    m = numpy.floor(list(map(lambda x: x / 2.0, f.shape)))
     u = map(lambda x: x / 2.0, m)
 
     r = pocfunc(f, g)
