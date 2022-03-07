@@ -4,8 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+opencv-python = "*"
+numpy = "*"
+matplotlib = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.9"
+
+[scripts]
+main = "py main.py"
