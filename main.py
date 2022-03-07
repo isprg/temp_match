@@ -8,7 +8,7 @@ CAMERA_ID = 0
 DELAY = 5
 THRESH_MACH = 0.9
 
-def inputTemplates(dirName):
+def inputTemplates(dirName:str):
     """テンプレート画像を全て読み込む関数 
 
     Parameters:
@@ -78,19 +78,19 @@ def main():
         if ret:
             frame_gray = cv2.cvtColor(frame_rgb, cv2.COLOR_BGR2GRAY)
 
-            matches(frame_gray, temps_gray)
+            val, loc, w, h= matches(frame_gray, temps_gray)
 
             threshold = THRESH_MACH
-            if val_mach >= threshold:
-                top_left = loc_mach
-                bottom_right = (top_left[0] + w_mach, top_left[1] + h_mach)
+            if val >= threshold:
+                top_left = loc
+                bottom_right = (top_left[0] + w, top_left[1] + h)
                 # cv2.rectangle(frame_rgb, top_left, bottom_right, color=(0,0,255), thickness=3)
-                # print(f'{top_left}, {bottom_right}')
+                print(f'{top_left}, {bottom_right}')
                 isMachImage = True
 
             frame_rgb = cv2.flip(frame_rgb, 1)
             cv2.imshow('camera', frame_rgb)
-            print(f'isMach:{isMachImage}, val:{val_mach}')
+            print(f'isMach:{isMachImage}, val:{val}')
         
         if isMachImage or (cv2.waitKey(DELAY) & 0xFF == ord('q')):
             break
@@ -98,7 +98,7 @@ def main():
         ret, frame_rgb = cap.read()
 
     cap.release()
-    time.sleep(3)
+    time.sleep(1)
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
