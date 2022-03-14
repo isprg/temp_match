@@ -4,9 +4,11 @@ import time
 import cv2
 import numpy as np
 
+from ClsTemplateModel import TemplateModel
+
 CAMERA_ID = 0
 DELAY = 5
-THRESH_MACH = 0.9
+THRESH_MACH = 1.0
 
 def inputTemplates(dirName:str):
     """テンプレート画像を全て読み込む関数 
