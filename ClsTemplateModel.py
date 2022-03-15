@@ -30,26 +30,18 @@ class TemplateModel:
             img: テンプレートを探すグレースケール画像
         Returns:
             val: 複数テンプレートとの最も高い類似度の値
-            loc: 最も高い類似度を出した左上の座標（タプル型）
-            width: 最も高い類似度を算出したテンプレートの横幅
-            height: 最も高い類似度を算出したテンプレートの縦幅
         """
-        val_mach = -1
-        loc_mach = (0, 0)
-        w_mach = 0
-        h_mach = 0
+        val_match = -1
         for temp in self.temps:
             val, loc = matchFunc(img, temp)
-            if val > val_mach:
-                val_mach = val
-                loc_mach = (loc[0], loc[1])
-                w_mach, h_mach = temp.shape[::-1]
-            elif val < val_mach:
+            if val > val_match:
+                val_match = val
+            elif val < val_match:
                 break
-        return val_mach, loc_mach, w_mach, h_mach
+        return val_match
 
     # def drawRectangle(self, image:np.ndarray):
-    #     left_top = self.loc_mach
-    #     right_bottom = (self.left_top[0] + self.w_mach, self.left_top[1] + self.h_mach)
+    #     left_top = self.loc_match
+    #     right_bottom = (self.left_top[0] + self.w_match, self.left_top[1] + self.h_match)
     #     image = cv2.rectangle(image, left_top, right_bottom, (255, 0, 0), 3)
     #     return image
