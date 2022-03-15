@@ -10,64 +10,39 @@ CAMERA_ID = 0
 DELAY = 5
 THRESH_MACH = 1.0
 
-def inputTemplates(dirName:str):
-    """テンプレート画像を全て読み込む関数 
+def addTemplateImages(image:np.ndarray, tempModel:TemplateModel):
+    image = cv2.resize(image, (500, 500))
+    tempModel.addTempImage(image)
+    height = image.shape[0]
+    width = image.shape[1]
+    center = (int(width/2), int(height/2))
+    for i in range(10, 40, 10):
+        angle = i
+        trans = cv2.getRotationMatrix2D(center, angle , 1.0)
+        new = cv2.warpAffine(image, trans, (width,height), borderValue=(255, 255, 255))
+        tempModel.addTempImage(new)
+        angle = -i
+        trans = cv2.getRotationMatrix2D(center, angle , 1.0)
+        new = cv2.warpAffine(image, trans, (width,height), borderValue=(255, 255, 255))
+        tempModel.addTempImage(new)
+    # new = cv2.rotate(image, cv2.ROTATE_180)
+    # tempModel.addTempImage(new)
+    return tempModel
 
-    Parameters:
-        dirName(str): テンプレート画像が入ったﾃﾞｨﾚｸﾄﾘ名
-    Returns:
-        images(list): 全てのテンプレート画像のnumpy形式データが入ったリスト
-    """
-    images = []
-    for fileName in os.listdir(dirName):
-        image = cv2.imread(os.path.join(dirName, fileName))
-        images.append(image)
-    return images
-
-def templateMatch(img:np.ndarray, temp:np.ndarray):
-    """テンプレートマッチングを行い類似度と場所を返す
-
-    Parameters:
-        img: テンプレートを探すグレースケール画像
-        temp: テンプレートのグレースケール画像
-    Returns:
-        val: 最大の類似度の値
-        loc: 類似度が最大の左上の座標
-    """
-    res = cv2.matchTemplate(img, temp, cv2.TM_CCOEFF_NORMED)
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-    return max_val, max_loc
-
-def matches(img:np.ndarray, temps:list):
-    """複数のテンプレートを用い、最も高い類似度等を割り出す
-
-    Parameters:
-        img: テンプレートを探すグレースケール画像
-        temps: テンプレートのグレースケール画像を含むリスト
-    Returns:
-        val: 複数テンプレートとの最も高い類似度の値
-        loc: 最も高い類似度を出した左上の座標（タプル型）
-        width: 最も高い類似度を算出したテンプレートの横幅
-        height: 最も高い類似度を算出したテンプレートの縦幅
-    """
-    val_mach = -1
-    loc_mach = (0, 0)
-    w_mach = 0
-    h_mach = 0
-    for temp in temps:
-        val, loc = templateMatch(img, temp)
-        if val > val_mach:
-            val_mach = val
-            loc_mach = (loc[0], loc[1])
-            w_mach, h_mach = temp.shape[::-1]
-    return val_mach, loc_mach, w_mach, h_mach
 
 def main():
-    temps_rgb = inputTemplates('temp_images')
-    temps_gray = []
-    for img in temps_rgb:
-        temps_gray.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+    # 判定に使う領域
+    roi_size = (400, 400)
+    roi_lt = (440, 200)
+    roi_rb = (roi_lt[0]+roi_size[0], roi_lt[1]+roi_size[1])
 
+    # テンプレートの登録
+    img1 = cv2.imread('temp_images/image2-1.jpg')
+    temp1 = TemplateModel(1)
+    temp1 = addTemplateImages(img1, temp1)
+    # temp1.showTempImage(5)
+
+    # カメラ設定
     cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_DSHOW)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
@@ -75,24 +50,28 @@ def main():
     cap.set(cv2.CAP_PROP_FPS, 30)
     ret, frame_rgb = cap.read()
 
+
     isMachImage = False
     while cap.isOpened():
         if ret:
+            frame_gray = frame_rgb[roi_lt[1]:roi_rb[1], roi_lt[0]:roi_rb[0]]
             frame_gray = cv2.cvtColor(frame_rgb, cv2.COLOR_BGR2GRAY)
 
-            val, loc, w, h= matches(frame_gray, temps_gray)
+            val, loc, w, h= temp1.matches(frame_gray)
+            # val = 0.9
 
             threshold = THRESH_MACH
             if val >= threshold:
                 top_left = loc
                 bottom_right = (top_left[0] + w, top_left[1] + h)
                 # cv2.rectangle(frame_rgb, top_left, bottom_right, color=(0,0,255), thickness=3)
-                print(f'{top_left}, {bottom_right}')
+                print(f'({top_left}, {bottom_right})')
                 isMachImage = True
 
+            cv2.rectangle(frame_rgb, roi_lt, roi_rb, (255, 0, 0), 3)
             frame_rgb = cv2.flip(frame_rgb, 1)
             cv2.imshow('camera', frame_rgb)
-            print(f'isMach:{isMachImage}, val:{val}')
+            print(f'id:{temp1.getId()}, val:{val}')
         
         if isMachImage or (cv2.waitKey(DELAY) & 0xFF == ord('q')):
             break
