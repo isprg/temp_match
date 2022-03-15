@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def matchFunc(self, img:np.ndarray, temp:np.ndarray):
+def matchFunc(img:np.ndarray, temp:np.ndarray):
         """テンプレートマッチングを行い類似度と場所を返す
 
         Parameters:

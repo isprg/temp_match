@@ -2,13 +2,14 @@ import os
 import time
 
 import cv2
+from cv2 import imread
 import numpy as np
 
 from ClsTemplateModel import TemplateModel
 
 CAMERA_ID = 0
 DELAY = 5
-THRESH_MACH = 1.0
+THRESH_MACH = 0.9
 
 def inputTemplates(dirName:str):
     """テンプレート画像を全て読み込む関数 
@@ -63,10 +64,8 @@ def matches(img:np.ndarray, temps:list):
     return val_mach, loc_mach, w_mach, h_mach
 
 def main():
-    temps_rgb = inputTemplates('temp_images')
-    temps_gray = []
-    for img in temps_rgb:
-        temps_gray.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+    tempimg1 = cv2.imread('temp_images/toilet_500_0.png')
+    temp1 = TemplateModel(1, tempimg1)
 
     cap = cv2.VideoCapture(CAMERA_ID, cv2.CAP_DSHOW)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
@@ -80,7 +79,8 @@ def main():
         if ret:
             frame_gray = cv2.cvtColor(frame_rgb, cv2.COLOR_BGR2GRAY)
 
-            val, loc, w, h= matches(frame_gray, temps_gray)
+            val, loc, w, h= temp1.Templatematches(frame_gray)
+            temp1.showTempImage()
 
             threshold = THRESH_MACH
             if val >= threshold:

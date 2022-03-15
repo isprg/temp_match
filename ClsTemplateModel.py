@@ -1,14 +1,12 @@
-from socket import fromshare
 import cv2
 import numpy as np
 
-from TemplateMatch import matchFunc
+from RIPOC import matchFunc, zero_padding
 
 class TemplateModel:
     def __init__(self, id:int, image:np.ndarray=None):
         self.id = id
         self.temps = []
-        self.val_mach = -1
         self.loc_mach = (0, 0)
         self.w_mach = 0
         self.h_mach = 0
@@ -25,8 +23,16 @@ class TemplateModel:
             print('対応インデックスに画像が登録されていません')
 
     def addTempImage(self, image:np.ndarray):
-        self.temps.append(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        self.temps.append(image)
         return self.temps[-1]
+
+    def shapeTemplate(self, img:np.ndarray, temp:np.ndarray):
+        size = (img.shape[0], img.shape[1])
+        cv2.imshow('test', temp)
+        new = zero_padding(temp, size)
+        self.temps.append(new)
+        return new
 
     def Templatematches(self, img:np.ndarray):
         """複数のテンプレートを用い、最も高い類似度等を割り出す
@@ -39,13 +45,18 @@ class TemplateModel:
             width: 最も高い類似度を算出したテンプレートの横幅
             height: 最も高い類似度を算出したテンプレートの縦幅
         """
+        val_mach = -1
         for temp in self.temps:
+            if img.shape != temp.shape:
+                new = self.shapeTemplate(img, temp)
+                self.temps.remove(temp)
+                temp = new
             val, loc = matchFunc(img, temp)
-            if val > self.val_mach:
-                self.val_mach = val
+            if val > val_mach:
+                val_mach = val
                 self.loc_mach = (loc[0], loc[1])
                 self.w_mach, self.h_mach = temp.shape[::-1]
-        return self.val_mach, self.loc_mach, self.w_mach, self.h_mach
+        return val_mach, self.loc_mach, self.w_mach, self.h_mach
 
     def drawRectangle(self, image:np.ndarray):
         left_top = self.loc_mach
